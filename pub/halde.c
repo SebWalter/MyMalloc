@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <unistd.h>
 #include <sys/mman.h>
 
@@ -56,61 +55,9 @@ void printList(void) {
 	}
 	write(STDERR_FILENO, "\n", 1);
 }
-static void *getNewMemory() {
-	void *newMemory = mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	if (newMemory == MAP_FAILED) {
-		return NULL;
-	}
-	return newMemory;
-}
-
-static void setupNewMemory() {
-	if (memory == NULL) {
-		return;
-	}
-	head = (struct mblock *)memory;
-	head->size = (SIZE - sizeof(struct mblock));
-	head->next = NULL;
-	return;
-}
-static char *setupMemory(struct mblock *current, size_t size){
-//Edge 1: No enough space for new Block
-	if (current->size < size + sizeof(struct mblock)) {
-		head = current->next;
-		current->next = (struct mblock *)MAGIC;
-		return current->memory;
-	}
-	else {
-		struct mblock *newBlock = (struct mblock *)(current->memory + size); //hier evtl size +1
-		newBlock->size = (current->size -(sizeof(struct mblock) + size));
-		head = newBlock;
-		current->size = size;
-		current->next = (struct mblock *)MAGIC;
-		return current->memory;
-	}
-	return NULL;
-}
 
 void *malloc (size_t size) {
-	if (memory == NULL) {
-		void *newMemory = getNewMemory();
-		if (newMemory == NULL) {
-			return NULL;
-		}
-		memory = (char *)newMemory;
-		setupNewMemory();
-	}
-	if (head == NULL) {
-		return NULL;
-	}
-	struct mblock *current = head;
-	while(current != NULL) {
-		if (current->size >= size) {
-			return (void *)setupMemory(current, size);
-		}
-		current = current->next;
-	}
-	//kein Speicher mehr frei
+	// TODO: implement me!
 	return NULL;
 }
 
