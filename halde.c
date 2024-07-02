@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -74,7 +75,7 @@ static void setupNewMemory() {
 	return;
 }
 static char *setupMemory(struct mblock *current, size_t size){
-//Edge 1: No enough space for new Block
+//case 1: No enough space for new Block
 	if (current->size < size + sizeof(struct mblock)) {
 		head = current->next;
 		current->next = (struct mblock *)MAGIC;
@@ -115,7 +116,18 @@ void *malloc (size_t size) {
 }
 
 void free (void *ptr) {
-	// TODO: implement me!
+	if (ptr == NULL) {
+		return;
+	}
+	struct mblock *block = (struct mblock *)((char *)ptr - sizeof(struct mblock));
+	//my debut error outputs:
+	if (block->next != (struct mblock*) MAGIC) {
+		fprintf(stderr, "Error: tried to free, non allocated memory\n");
+		return;
+	}
+	block->next = head;
+	head = block;
+	return;
 }
 
 void *realloc (void *ptr, size_t size) {
