@@ -1,4 +1,5 @@
 #include "halde.h"
+#include <cerrno>
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -74,23 +75,6 @@ static void setupNewMemory() {
 	head->next = NULL;
 	return;
 }
-static char *setupMemory(struct mblock *current, size_t size){
-//case 1: No enough space for new Block
-	if (current->size < size + sizeof(struct mblock)) {
-		head = current->next;
-		current->next = (struct mblock *)MAGIC;
-		return current->memory;
-	}
-	else {
-		struct mblock *newBlock = (struct mblock *)(current->memory + size); //hier evtl size +1
-		newBlock->size = (current->size -(sizeof(struct mblock) + size));
-		head = newBlock;
-		current->size = size;
-		current->next = (struct mblock *)MAGIC;
-		return current->memory;
-	}
-	return NULL;
-}
 
 void *malloc (size_t size) {
 	if (memory == NULL) {
@@ -105,16 +89,47 @@ void *malloc (size_t size) {
 		return NULL;
 	}
 	struct mblock *current = head;
-	while(current != NULL) {
+	struct mblock *previous = NULL;
+	while (current != NULL) {
 		if (current->size >= size) {
-			return (void *)setupMemory(current, size);
+		    size_t remainingSize = current->size - size - sizeof(struct mblock);
+
+		    if (remainingSize > sizeof(struct mblock)) {
+			// Split the block
+			struct mblock *newBlock = (struct mblock *)(current->memory + size);
+			newBlock->size = remainingSize;
+			newBlock->next = current->next;
+
+			current->size = size;
+			current->next = (struct mblock *)MAGIC;
+
+			if (previous) {
+			    previous->next = newBlock;
+			} 
+			else {
+			    head = newBlock;
+			}
+		    } 
+		    else {
+			// Allocate the entire block
+			if (previous) {
+			    previous->next = current->next;
+			} 
+			else {
+			    head = current->next;
+			}
+			current->next = (struct mblock *)MAGIC;
+		    }
+
+		    return current->memory;
 		}
+
+		previous = current;
 		current = current->next;
 	}
-	//kein Speicher mehr frei
+	errno = ENOMEM;	
 	return NULL;
 }
-
 void free (void *ptr) {
 	if (ptr == NULL) {
 		return;
@@ -136,6 +151,14 @@ void *realloc (void *ptr, size_t size) {
 }
 
 void *calloc (size_t nmemb, size_t size) {
-	// TODO: implement me!
-	return NULL;
+	size_t sizeToMalloc = nmemb * size;
+	char *memory = malloc(sizeToMalloc);
+	if (memory == NULL) {
+		return NULL;
+	}
+	if (memset(memory, 0, sizeToMalloc) == NULL) {
+		free(memory);
+		return NULL;
+	}
+	return memory;
 }
