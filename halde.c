@@ -76,6 +76,9 @@ static void setupNewMemory() {
 }
 
 void *malloc (size_t size) {
+	if (size == 0) {
+		return NULL;
+	}
 	if (memory == NULL) {
 		void *newMemory = getNewMemory();
 		if (newMemory == NULL) {
@@ -143,10 +146,42 @@ void free (void *ptr) {
 	head = block;
 	return;
 }
+//for realloc we need to now how big the memory is that we want to copy
+static size_t getPointerSize(void *ptr) {
+	if (ptr == NULL) {
+		return -1;
+	}
+	struct mblock *block = (struct mblock *)((char *)ptr - sizeof(struct mblock));
+	return block->size;	
+}
+
+static size_t calculateN(void *new, void *old) {
+	size_t new_size = getPointerSize(new);
+	size_t old_size = getPointerSize(old);
+	if (old_size == -1 || new_size == -1) {
+		return -1;
+	}
+	if (new_size > old_size) {
+		return old_size;
+	}
+	return new_size;
+
+}
+
+
 
 void *realloc (void *ptr, size_t size) {
-	// TODO: implement me!
-	return NULL;
+	//get new Memory
+	char *new_mem = malloc(size);
+	if (new_mem == NULL) {
+		return NULL;
+	}
+	size_t n = calculateN(new_mem, ptr);
+	if (memcpy(new_mem, ptr, n) != new_mem) {
+		free(new_mem);
+		return NULL;
+	}
+	return new_mem;
 }
 
 void *calloc (size_t nmemb, size_t size) {
