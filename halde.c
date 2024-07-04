@@ -210,6 +210,10 @@ void *realloc (void *ptr, size_t size) {
 	//to prevent overflows, we need the smallest allocated pointer size from
 	//the new and the old
 	size_t n = calculateN(newMem,size, ptr);
+	if (n == -1) {
+		free(newMem);
+		return NULL;
+	}
 	if (memcpy(newMem, ptr, n) != newMem) {
 		free(newMem);
 		return NULL;
