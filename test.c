@@ -1,10 +1,20 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include "halde.h"
 
 int main(int argc, char *argv[]) {
-	char *m5 = malloc(0);
+	//randfall call malloc(0)
+	//erwartetes ergebnis: invalider pointer then man freen kann
+	char *m0 = malloc(0);
+	//randfall erzwinge integer overflow in calloc
+	// --> return NULL + errno
+	char *m00 = calloc(99999, 99999);
+	if (m00 == NULL) {
+		perror("calloc");
+	}
+
 	char *m1 = malloc(200*1024);
 	char *m2 = malloc(20*20);
 	char *m3 = malloc(40*40);
@@ -14,7 +24,7 @@ int main(int argc, char *argv[]) {
 	free(m2);
 	free(m3);
 	free(m4);
-	free(m5);
+	free(m0);
 	printList();
 
 
@@ -32,6 +42,5 @@ int main(int argc, char *argv[]) {
 	free(m4);
 
 	printList();
-
 	exit(EXIT_SUCCESS);
 }
