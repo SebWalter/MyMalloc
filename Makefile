@@ -12,5 +12,5 @@ test-ref: ref
 ref: halde-ref.o
 				$(cc) test.c halde-ref.o -o test-ref $(CFLAGS)
 clean:
-				rm -f halde test.o test-ref
+				rm -f test test.o test-ref
 
