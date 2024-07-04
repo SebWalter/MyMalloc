@@ -1,9 +1,9 @@
 .PHONY = all, clean, test-ref
 cc = gcc
 CFLAGS = -std=c11 -pedantic -Wall -Werror -D_GNU_SOURCE -g 
-all: halde
-halde: test.o halde.o
-				$(cc) test.o halde.o -o halde $(CFLAGS)
+all: test
+test: test.o halde.o
+				$(cc) test.o halde.o -o test $(CFLAGS)
 test.o: test.c
 				$(cc) -c test.c $(CFLAGS)
 halde.o: halde.c
