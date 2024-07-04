@@ -24,6 +24,8 @@ struct mblock {
 
 /// Heap-memory area.
 static char *memory;
+//the dummy is used to return a pointer to free, when calling malloc with 0
+static struct mblock dummy;
 
 /// Pointer to the first element of the free-memory list.
 static struct mblock *head;
@@ -77,7 +79,7 @@ static void setupNewMemory() {
 
 void *malloc (size_t size) {
 	if (size == 0) {
-		return NULL;
+		return &dummy;
 	}
 	if (memory == NULL) {
 		void *newMemory = getNewMemory();
@@ -172,15 +174,23 @@ static size_t calculateN(void *new, void *old) {
 
 void *realloc (void *ptr, size_t size) {
 	//get new Memory
+	if (size <= 0) {
+		free(ptr);
+		return NULL;
+	}
 	char *new_mem = malloc(size);
 	if (new_mem == NULL) {
 		return NULL;
+	}
+	if (ptr == NULL) {
+		return new_mem;
 	}
 	size_t n = calculateN(new_mem, ptr);
 	if (memcpy(new_mem, ptr, n) != new_mem) {
 		free(new_mem);
 		return NULL;
 	}
+	free(ptr);
 	return new_mem;
 }
 
@@ -188,10 +198,6 @@ void *calloc (size_t nmemb, size_t size) {
 	size_t sizeToMalloc = nmemb * size;
 	char *memory = malloc(sizeToMalloc);
 	if (memory == NULL) {
-		return NULL;
-	}
-	if (memset(memory, 0, sizeToMalloc) == NULL) {
-		free(memory);
 		return NULL;
 	}
 	return memory;

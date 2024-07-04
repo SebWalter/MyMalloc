@@ -4,6 +4,7 @@
 #include "halde.h"
 
 int main(int argc, char *argv[]) {
+	char *m5 = malloc(0);
 	char *m1 = malloc(200*1024);
 	char *m2 = malloc(20*20);
 	char *m3 = malloc(40*40);
@@ -13,6 +14,7 @@ int main(int argc, char *argv[]) {
 	free(m2);
 	free(m3);
 	free(m4);
+	free(m5);
 	printList();
 
 
